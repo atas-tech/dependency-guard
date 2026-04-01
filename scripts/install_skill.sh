@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-skill_name="socket-dependency-guard"
+skill_name="dependency-guard"
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/.." && pwd)"
 
@@ -93,7 +93,7 @@ copy_bundle() {
   cp "$repo_root/agents/openai.yaml" "$dest/agents/openai.yaml"
   cp "$repo_root/references/"*.md "$dest/references/"
   cp "$repo_root/scripts/check_dependency.sh" "$dest/scripts/check_dependency.sh"
-  cp "$repo_root/examples/github/socket-dependency-guard.yml" "$dest/examples/github/socket-dependency-guard.yml"
+  cp "$repo_root/examples/github/dependency-guard.yml" "$dest/examples/github/dependency-guard.yml"
   chmod +x "$dest/scripts/check_dependency.sh"
 }
 
@@ -134,9 +134,9 @@ upsert_block() {
 project_agents_block() {
   cat <<EOF
 <!-- ${skill_name}:start -->
-## Socket Dependency Guard
+## Dependency Guard
 
-This project vendors the Socket dependency guard bundle at \`.agent-skills/${skill_name}\`.
+This project vendors the Dependency Guard bundle at \`.agent-skills/${skill_name}\`.
 
 When dependency changes are in scope:
 1. Read \`.agent-skills/${skill_name}/AGENTS.md\`.
@@ -166,7 +166,7 @@ EOF
 global_antigravity_block() {
   cat <<EOF
 <!-- ${skill_name}:start -->
-# Socket Dependency Guard
+# Dependency Guard
 
 When dependency changes are in scope, consult:
 - \`~/.gemini/skills/${skill_name}/AGENTS.md\`

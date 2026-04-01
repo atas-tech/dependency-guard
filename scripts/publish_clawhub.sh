@@ -5,8 +5,8 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/.." && pwd)"
 default_path="$repo_root"
-default_slug="socket-dependency-guard"
-default_name="Socket Dependency Guard"
+default_slug="dependency-guard"
+default_name="Dependency Guard"
 
 usage() {
   cat <<EOF
@@ -90,6 +90,11 @@ if [[ ! -f "$skill_path/SKILL.md" ]]; then
   exit 66
 fi
 
+if [[ "$dry_run" -eq 0 ]] && ! command -v clawhub >/dev/null 2>&1; then
+  echo "clawhub CLI not found on PATH. Install it with: npm i -g clawhub" >&2
+  exit 69
+fi
+
 cmd=(
   clawhub publish "$skill_path"
   --slug "$slug"
@@ -108,11 +113,6 @@ if [[ "$dry_run" -eq 1 ]]; then
   printf '%q ' "${cmd[@]}"
   printf '\n'
   exit 0
-fi
-
-if ! command -v clawhub >/dev/null 2>&1; then
-  echo "clawhub CLI not found on PATH. Install it with: npm i -g clawhub" >&2
-  exit 69
 fi
 
 "${cmd[@]}"

@@ -9,14 +9,14 @@ trap 'rm -rf "$tmp_dir"' EXIT
 
 "$repo_root/scripts/install_skill.sh" --mode project --agent openclaw --target "$tmp_dir" >/dev/null
 
-bundle_dir="$tmp_dir/skills/socket-dependency-guard"
+bundle_dir="$tmp_dir/skills/dependency-guard"
 
 [[ -f "$bundle_dir/SKILL.md" ]]
 [[ -f "$bundle_dir/AGENTS.md" ]]
 [[ -f "$bundle_dir/CLAUDE.md" ]]
 [[ -f "$bundle_dir/references/policy.md" ]]
 [[ -f "$bundle_dir/scripts/check_dependency.sh" ]]
-[[ ! -e "$tmp_dir/.agent-skills/socket-dependency-guard" ]]
+[[ ! -e "$tmp_dir/.agent-skills/dependency-guard" ]]
 [[ ! -f "$tmp_dir/AGENTS.md" ]]
 [[ ! -f "$tmp_dir/CLAUDE.md" ]]
 

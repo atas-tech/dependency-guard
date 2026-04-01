@@ -1,10 +1,10 @@
 ---
-name: "socket-dependency-guard"
+name: "dependency-guard"
 description: "Use when a task adds, upgrades, removes, or reviews software dependencies and the agent should apply a Socket-based supply-chain guardrail before changing manifests or lockfiles. Prefer MCP `depscore` when available, otherwise use the bundled Socket CLI helper. Stop and recommend an alternative or human review when risk signals are weak."
 metadata: {"openclaw":{"emoji":"🛡️"}}
 ---
 
-# Socket Dependency Guard
+# Dependency Guard
 
 Use this skill when dependency changes are in scope for `npm`, `pnpm`, `yarn`, Python packages, or other package ecosystems supported by Socket.
 
@@ -21,7 +21,7 @@ Use this skill when dependency changes are in scope for `npm`, `pnpm`, `yarn`, P
    - whether an existing alternative exists
    - what Socket reported
    - whether install scripts, risky capabilities, or transitive risk are present
-8. If the decision is not `allow`, stop and propose either:
+8. If the decision is `allow_with_warning`, present the warning clearly before making the change. If the decision is `block_pending_human_review` or `block`, stop and propose either:
    - a safer dependency
    - a no-dependency implementation
    - explicit human review

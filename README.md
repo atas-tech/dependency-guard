@@ -11,7 +11,8 @@ This repository now packages the same policy in multiple forms:
 - `CLAUDE.md`: Claude Code project memory
 - `references/`: canonical policy, decision matrix, and reporting examples
 - `scripts/check_dependency.sh`: helper that generates a Socket CLI review artifact
-- `examples/github/socket-dependency-guard.yml`: copyable GitHub Actions example using `socket ci`
+- `scripts/test.sh`: simple smoke-test runner for the repository helpers
+- `examples/github/dependency-guard.yml`: copyable GitHub Actions example using `socket ci`
 
 ## Supported Agent Shapes
 
@@ -37,18 +38,18 @@ Use the installer to vendor this bundle into a project or install it globally fo
 
 Project mode:
 
-- copies the bundle into `.agent-skills/socket-dependency-guard` for Codex, Claude, and Antigravity
-- copies the bundle into `skills/socket-dependency-guard` for OpenClaw and ClawHub-oriented workspace installs
+- copies the bundle into `.agent-skills/dependency-guard` for Codex, Claude, and Antigravity
+- copies the bundle into `skills/dependency-guard` for OpenClaw and ClawHub-oriented workspace installs
 - updates project-root `AGENTS.md` for Codex-style and Antigravity-style project instructions
 - updates project-root `CLAUDE.md` with an import for Claude Code
 
 Global mode:
 
-- Codex: installs into `$CODEX_HOME/skills/socket-dependency-guard` or `~/.codex/skills/socket-dependency-guard`
-- Claude Code: installs into `~/.claude/skills/socket-dependency-guard` and updates `~/.claude/CLAUDE.md`
-- Antigravity: installs into `~/.gemini/skills/socket-dependency-guard` and updates `~/.gemini/GEMINI.md`
-- OpenClaw: installs into `~/.openclaw/skills/socket-dependency-guard`
-- ClawHub authoring: prepares the same bundle under `~/.openclaw/skills/socket-dependency-guard` so it can be published or synced with `clawhub`
+- Codex: installs into `$CODEX_HOME/skills/dependency-guard` or `~/.codex/skills/dependency-guard`
+- Claude Code: installs into `~/.claude/skills/dependency-guard` and updates `~/.claude/CLAUDE.md`
+- Antigravity: installs into `~/.gemini/skills/dependency-guard` and updates `~/.gemini/GEMINI.md`
+- OpenClaw: installs into `~/.openclaw/skills/dependency-guard`
+- ClawHub authoring: prepares the same bundle under `~/.openclaw/skills/dependency-guard` so it can be published or synced with `clawhub`
 
 ## How It Works
 
@@ -169,6 +170,12 @@ Generate a review artifact before changing dependencies:
 
 The helper writes a markdown report under `tmp/socket-reports/` by default. Apply `references/decision-matrix.md` to that report before changing manifests or lockfiles.
 
+Run the bundled smoke tests:
+
+```sh
+./scripts/test.sh
+```
+
 ## ClawHub Publish Helper
 
 Publish the repository root as a versioned ClawHub skill:
@@ -182,9 +189,11 @@ The helper validates that the target directory contains `SKILL.md`, requires the
 
 ## CI Enforcement Example
 
-This repo includes a disabled-by-default example workflow at `examples/github/socket-dependency-guard.yml`.
+This repo includes a disabled-by-default example workflow at `examples/github/dependency-guard.yml`.
 
-To use it in another repository, copy it into `.github/workflows/socket-dependency-guard.yml`.
+To use it in another repository, copy it into `.github/workflows/dependency-guard.yml`.
+
+The example workflow uses the same Node-based `socket` CLI as the local setup section.
 
 The example workflow:
 

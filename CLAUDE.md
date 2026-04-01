@@ -13,7 +13,7 @@ Required process:
    - whether an existing alternative exists
    - what Socket reported
    - whether install scripts, risky capabilities, or transitive risk are present
-6. If the result is `allow_with_warning`, `block_pending_human_review`, or `block`, stop and explain the safer path.
+6. If the result is `allow_with_warning`, present the warning clearly before proceeding. If the result is `block_pending_human_review` or `block`, stop and explain the safer path.
 
 For CLI fallback auth, use either a user-supplied private Socket token or a limited public-login flow if the installed Socket CLI supports blank-submit login. Do not assume system-wide wrapper enforcement or shell completion.
 
