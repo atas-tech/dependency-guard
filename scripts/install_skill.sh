@@ -9,14 +9,18 @@ repo_root="$(cd "$script_dir/.." && pwd)"
 usage() {
   cat <<EOF
 Usage:
-  install_skill.sh --mode project|global --agent codex|claude|antigravity|openclaw|clawhub|all [--target <path>]
+  install_skill.sh --mode project|global --agent codex|claude|antigravity|openclaw|clawhub|all [--target <path>] [--dry-run] [--yes]
+
+Options:
+  --dry-run   Show what would be created/modified without writing anything
+  --yes, -y   Skip interactive confirmation prompt (global mode prompts by default)
 
 Examples:
   ./scripts/install_skill.sh --mode project --agent all
   ./scripts/install_skill.sh --mode project --agent all --target /path/to/repo
   ./scripts/install_skill.sh --mode global --agent codex
-  ./scripts/install_skill.sh --mode global --agent claude
-  ./scripts/install_skill.sh --mode global --agent antigravity
+  ./scripts/install_skill.sh --mode global --agent claude --dry-run
+  ./scripts/install_skill.sh --mode global --agent antigravity --yes
   ./scripts/install_skill.sh --mode global --agent openclaw
   ./scripts/install_skill.sh --mode global --agent clawhub
 
@@ -36,6 +40,8 @@ EOF
 mode=""
 agent=""
 target=""
+dry_run=0
+auto_yes=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -50,6 +56,14 @@ while [[ $# -gt 0 ]]; do
     --target)
       target="${2:-}"
       shift 2
+      ;;
+    --dry-run)
+      dry_run=1
+      shift
+      ;;
+    --yes|-y)
+      auto_yes=1
+      shift
       ;;
     -h|--help)
       usage
@@ -80,6 +94,57 @@ case "$agent" in
     exit 64
     ;;
 esac
+
+# --- dry-run and confirmation helpers ----------------------------------------
+
+planned_files=()    # files that will be created
+planned_updates=()  # files that will be modified
+
+plan_bundle() {
+  local dest="$1"
+  planned_files+=("$dest/SKILL.md" "$dest/AGENTS.md" "$dest/CLAUDE.md")
+  planned_files+=("$dest/agents/openai.yaml")
+  local f
+  for f in "$repo_root/references/"*.md; do
+    planned_files+=("$dest/references/$(basename "$f")")
+  done
+  planned_files+=("$dest/scripts/check_dependency.sh")
+  planned_files+=("$dest/examples/github/dependency-guard.yml")
+}
+
+plan_update() {
+  planned_updates+=("$1")
+}
+
+show_plan() {
+  if [[ ${#planned_files[@]} -gt 0 ]]; then
+    echo "Files to create/overwrite:"
+    for f in "${planned_files[@]}"; do
+      echo "  $f"
+    done
+  fi
+  if [[ ${#planned_updates[@]} -gt 0 ]]; then
+    echo "Files to update (managed block):"
+    for f in "${planned_updates[@]}"; do
+      echo "  $f"
+    done
+  fi
+}
+
+confirm_or_exit() {
+  if [[ "$auto_yes" -eq 1 ]]; then
+    return 0
+  fi
+  printf 'Continue? [y/N] '
+  read -r answer
+  case "$answer" in
+    [yY]|[yY][eE][sS]) ;;
+    *)
+      echo "Aborted." >&2
+      exit 1
+      ;;
+  esac
+}
 
 copy_bundle() {
   local dest="$1"
@@ -184,6 +249,26 @@ install_project() {
   local installed_bundles=()
 
   if [[ "$agent" == "codex" || "$agent" == "antigravity" || "$agent" == "claude" || "$agent" == "all" ]]; then
+    plan_bundle "$codex_bundle_dir"
+  fi
+  if [[ "$agent" == "openclaw" || "$agent" == "clawhub" || "$agent" == "all" ]]; then
+    plan_bundle "$openclaw_bundle_dir"
+  fi
+  if [[ "$agent" == "codex" || "$agent" == "antigravity" || "$agent" == "all" ]]; then
+    plan_update "$project_root/AGENTS.md"
+  fi
+  if [[ "$agent" == "claude" || "$agent" == "all" ]]; then
+    plan_update "$project_root/CLAUDE.md"
+  fi
+
+  show_plan
+
+  if [[ "$dry_run" -eq 1 ]]; then
+    echo "dry_run=1"
+    exit 0
+  fi
+
+  if [[ "$agent" == "codex" || "$agent" == "antigravity" || "$agent" == "claude" || "$agent" == "all" ]]; then
     mkdir -p "$project_root/.agent-skills"
     copy_bundle "$codex_bundle_dir"
     installed_bundles+=("$codex_bundle_dir")
@@ -215,6 +300,16 @@ EOF
 install_global_codex() {
   local codex_home="${CODEX_HOME:-$HOME/.codex}"
   local dest="$codex_home/skills/${skill_name}"
+
+  plan_bundle "$dest"
+  show_plan
+
+  if [[ "$dry_run" -eq 1 ]]; then
+    echo "dry_run=1"
+    return 0
+  fi
+
+  confirm_or_exit
   copy_bundle "$dest"
 
   cat <<EOF
@@ -229,6 +324,16 @@ install_global_claude() {
   local dest="$HOME/.claude/skills/${skill_name}"
   local memory_file="$HOME/.claude/CLAUDE.md"
 
+  plan_bundle "$dest"
+  plan_update "$memory_file"
+  show_plan
+
+  if [[ "$dry_run" -eq 1 ]]; then
+    echo "dry_run=1"
+    return 0
+  fi
+
+  confirm_or_exit
   mkdir -p "$HOME/.claude/skills"
   copy_bundle "$dest"
   upsert_block "$memory_file" "$(global_claude_block)"
@@ -246,6 +351,16 @@ install_global_antigravity() {
   local dest="$HOME/.gemini/skills/${skill_name}"
   local memory_file="$HOME/.gemini/GEMINI.md"
 
+  plan_bundle "$dest"
+  plan_update "$memory_file"
+  show_plan
+
+  if [[ "$dry_run" -eq 1 ]]; then
+    echo "dry_run=1"
+    return 0
+  fi
+
+  confirm_or_exit
   mkdir -p "$HOME/.gemini/skills"
   copy_bundle "$dest"
   upsert_block "$memory_file" "$(global_antigravity_block)"
@@ -262,6 +377,15 @@ EOF
 install_global_openclaw() {
   local dest="$HOME/.openclaw/skills/${skill_name}"
 
+  plan_bundle "$dest"
+  show_plan
+
+  if [[ "$dry_run" -eq 1 ]]; then
+    echo "dry_run=1"
+    return 0
+  fi
+
+  confirm_or_exit
   mkdir -p "$HOME/.openclaw/skills"
   copy_bundle "$dest"
 
@@ -276,6 +400,15 @@ EOF
 install_global_clawhub() {
   local dest="$HOME/.openclaw/skills/${skill_name}"
 
+  plan_bundle "$dest"
+  show_plan
+
+  if [[ "$dry_run" -eq 1 ]]; then
+    echo "dry_run=1"
+    return 0
+  fi
+
+  confirm_or_exit
   mkdir -p "$HOME/.openclaw/skills"
   copy_bundle "$dest"
 

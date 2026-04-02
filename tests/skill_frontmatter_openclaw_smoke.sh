@@ -8,6 +8,6 @@ skill_file="$repo_root/SKILL.md"
 
 metadata_line="$(grep '^metadata:' "$skill_file")"
 
-[[ "$metadata_line" == 'metadata: {"openclaw":{"emoji":"🛡️"}}' ]]
+[[ "$metadata_line" == 'metadata: {"openclaw":{"emoji":"🛡️","requires":{"bins":["socket"]}}}' ]]
 
 echo "openclaw frontmatter smoke test passed"

@@ -96,7 +96,7 @@ Before changing manifests or lockfiles, the agent must report:
 - OpenClaw loads workspace skills from `<workspace>/skills`.
 - OpenClaw expects `metadata` in `SKILL.md` frontmatter to be a single-line JSON object.
 - This repo keeps OpenClaw metadata in `SKILL.md` only; it does not require a separate memory import file.
-- The skill does not declare a required `socket` binary for OpenClaw because MCP `depscore` is the preferred path and should not be blocked by missing CLI tooling.
+- The skill declares `socket` in `requires.bins`; OpenClaw will filter the skill out if the Socket CLI is not installed.
 
 ### ClawHub Notes
 
@@ -104,7 +104,7 @@ Before changing manifests or lockfiles, the agent must report:
 - Native install/update flows can use `openclaw skills install <skill-slug>` and `openclaw skills update --all`.
 - Registry-authenticated workflows such as publish and sync use the separate `clawhub` CLI.
 - All ClawHub-published skills are public, so do not publish local secrets, private prompts, or environment-specific credentials in the skill bundle.
-- This repo includes `scripts/publish_clawhub.sh` as a thin wrapper around `clawhub publish`.
+- The publish helper (`scripts/publish_clawhub.sh`) builds a **clean staging bundle** containing only OpenClaw-relevant files (SKILL.md, references/, check_dependency.sh, examples/, LICENSE). Agent-specific adapters (CLAUDE.md, AGENTS.md, agents/) and dev tooling are excluded from the published bundle.
 
 ### Install Models
 
@@ -125,7 +125,7 @@ Install the ClawHub CLI if you want to publish this skill bundle to the public r
 npm install -g clawhub
 ```
 
-Credential options for the CLI fallback:
+### Local CLI Authentication
 
 ```sh
 socket login
@@ -139,11 +139,22 @@ Recommended interactive setup:
 4. Decline bash completion when prompted.
 5. If you already have a private Socket API token, paste that instead of using the limited public token.
 
-Environment-variable alternative for private credentials:
+Environment-variable alternative for headless or CI use:
 
 ```sh
 export SOCKET_SECURITY_API_TOKEN="your-private-token"
 ```
+
+> **Security:** Never paste private tokens into agent prompts. Use the env var or `socket login` instead.
+
+### CI vs Local Credentials
+
+| Context | Variable | Purpose |
+|---------|----------|---------|
+| Local CLI / headless | `SOCKET_SECURITY_API_TOKEN` | Authenticates the `socket` CLI for package reviews |
+| GitHub Actions (`socket ci`) | `SOCKET_SECURITY_API_KEY` | Authenticates the Socket GitHub integration |
+
+These are **different keys** issued through different Socket flows. See the CI example at `examples/github/dependency-guard.yml`.
 
 Notes:
 
@@ -178,14 +189,29 @@ Run the bundled smoke tests:
 
 ## ClawHub Publish Helper
 
-Publish the repository root as a versioned ClawHub skill:
+Publish a clean bundle to ClawHub. The `version` field in `SKILL.md` frontmatter is the single source of truth.
+
+Auto-bump the version and publish:
 
 ```sh
-./scripts/publish_clawhub.sh --version 1.0.0 --dry-run
-./scripts/publish_clawhub.sh --version 1.0.0 --changelog "Initial ClawHub release"
+./scripts/publish_clawhub.sh --bump patch --dry-run
+./scripts/publish_clawhub.sh --bump minor --changelog "Add requires.bins metadata"
+./scripts/publish_clawhub.sh --bump major --changelog "Breaking: require socket CLI"
 ```
 
-The helper validates that the target directory contains `SKILL.md`, requires the `clawhub` CLI on `PATH`, and then runs `clawhub publish`.
+Explicit version override (does not update SKILL.md):
+
+```sh
+./scripts/publish_clawhub.sh --version 2.0.0 --changelog "Manual version"
+```
+
+Read version from SKILL.md as-is:
+
+```sh
+./scripts/publish_clawhub.sh --dry-run
+```
+
+The helper builds a staging bundle containing only OpenClaw-relevant files, requires the `clawhub` CLI on `PATH`, and runs `clawhub publish`.
 
 ## CI Enforcement Example
 

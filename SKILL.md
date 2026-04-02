@@ -1,12 +1,18 @@
 ---
 name: "dependency-guard"
+version: "1.0.1"
 description: "Use when a task adds, upgrades, removes, or reviews software dependencies and the agent should apply a Socket-based supply-chain guardrail before changing manifests or lockfiles. Prefer MCP `depscore` when available, otherwise use the bundled Socket CLI helper. Stop and recommend an alternative or human review when risk signals are weak."
-metadata: {"openclaw":{"emoji":"🛡️"}}
+metadata: {"openclaw":{"emoji":"🛡️","requires":{"bins":["socket"]}}}
 ---
 
 # Dependency Guard
 
 Use this skill when dependency changes are in scope for `npm`, `pnpm`, `yarn`, Python packages, or other package ecosystems supported by Socket.
+
+## Prerequisites
+
+- The `socket` CLI must be installed and on `PATH` (`npm install -g socket`).
+- Authentication is required for CLI-based reviews. See the Authentication section below.
 
 ## Workflow
 
@@ -26,6 +32,20 @@ Use this skill when dependency changes are in scope for `npm`, `pnpm`, `yarn`, P
    - a no-dependency implementation
    - explicit human review
 
+## Authentication
+
+Three authentication paths are supported, in order of preference:
+
+1. **MCP `depscore`** — no local credentials needed; works through the host agent's MCP connection.
+2. **`socket login`** — interactive CLI login; stores auth locally.
+   - If your CLI supports it, pressing Enter at the token prompt uses limited public access.
+   - To use a private token, paste it at the prompt instead.
+3. **`SOCKET_SECURITY_API_TOKEN` env var** — set this for CI or headless environments.
+
+> **Security:** Never paste private tokens into agent prompts. Use the env var or `socket login` instead.
+
+> **CI note:** GitHub Actions workflows use `SOCKET_SECURITY_API_KEY` (a separate GitHub-integration key), not `SOCKET_SECURITY_API_TOKEN`. See `examples/github/dependency-guard.yml`.
+
 ## Reporting Contract
 
 Use the short response template in `references/examples.md` when presenting the package review to the user.
@@ -40,8 +60,7 @@ Use the short response template in `references/examples.md` when presenting the 
 
 - Keep `SKILL.md` lean; do not duplicate the full policy here.
 - OpenClaw and ClawHub expect `metadata` to be a single-line JSON object in frontmatter, so keep the OpenClaw metadata compact.
-- OpenClaw metadata is intentionally minimal so the skill stays eligible even when the Socket CLI is not installed and MCP `depscore` is the available review path.
-- For CLI fallback auth, allow either a user-supplied private token or a limited public-login flow if the installed Socket CLI supports blank-submit login.
+- The `version` field in frontmatter is the single source of truth; use `publish_clawhub.sh --bump patch|minor|major` to auto-increment.
 - Do not assume system-wide wrapper enforcement or shell-completion setup is desirable; keep CLI setup minimal.
 - If Socket tooling is unavailable, require human review before adding the dependency.
 - Review manifest and lockfile changes together.
