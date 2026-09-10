@@ -2,6 +2,9 @@
 
 Use this matrix after collecting either a Socket `depscore` result or a Socket CLI package report.
 
+Socket CLI reports may label medium severity as `middle`; treat `middle` and
+`medium` as the same severity when applying these rules.
+
 When only a Socket CLI package report is available, use score-based rules only if the report includes current category scores. If it does not, treat score-based checks as unavailable and do not classify above `block_pending_human_review` without a fresh `depscore` result.
 
 ## Default Thresholds
@@ -26,6 +29,8 @@ Choose `allow` only when all of the following are true:
 - all category scores are `>= 85`
 - no medium, high, or critical alerts are present
 - no install scripts are present
+- no unexplained build-time execution hooks are present (for example Rust
+  `build.rs`, proc-macros, Python build backends, or Maven/Gradle plugins)
 - no clearly risky capabilities are present without a strong project-specific justification
 - the transitive dependency footprint fits the default `allow` guidance for its package class
 
@@ -46,13 +51,16 @@ Choose `block_pending_human_review` when the package is not clearly safe but mig
 
 - any category score is `50-69`
 - any category score is missing or unavailable
+- the only repository evidence is from a CVE-only, experimental, or otherwise partial-coverage ecosystem
 - any medium alert is present
 - install scripts are present
+- build-time execution hooks are present but their behavior is not explained
 - obfuscation or minified installer logic prevents a confident review
 - shell, eval, unsafe, or broad environment access appears in a package that does not obviously require it (e.g., a date-formatting library spawning subprocesses)
 - the dependency tree falls into human-review territory for the package class or is unexpectedly deep or broad
 - the package replaces a simple in-house or standard-library implementation for convenience only
 - tooling is unavailable and the package cannot be reviewed
+- only a shallow package result is available for a package with dependencies
 
 The agent should stop and ask for explicit approval or propose an alternative.
 

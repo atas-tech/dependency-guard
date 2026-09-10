@@ -43,3 +43,17 @@ Dependency review: `<package>`
 - Decision: block
 - Recommended path: implement without the dependency
 ```
+
+## Example Rust Outcome
+
+```md
+Dependency review: `serde@1.0.219`
+
+- Need: Serialization for the existing Rust service.
+- Existing alternative: No equivalent dependency is already present; a handwritten format would be broader and less reliable.
+- Socket source: depscore (ecosystem: cargo)
+- Key result: Deep Cargo score is above the allow threshold, with no high/critical alerts; review also found no surprising build script or native-code behavior.
+- Transitive risk: Low; `Cargo.lock` pins the resolved graph.
+- Decision: allow
+- Recommended path: proceed and commit the lockfile update
+```

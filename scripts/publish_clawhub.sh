@@ -23,7 +23,7 @@ The version field in SKILL.md frontmatter is the single source of truth.
 Bundle staging:
   The publish bundle is assembled in a temporary directory containing only
   the files relevant to OpenClaw consumers:
-    SKILL.md, references/, scripts/check_dependency.sh, examples/, LICENSE
+    SKILL.md, references/, scripts/, examples/, LICENSE
 
 Examples:
   ./scripts/publish_clawhub.sh --bump patch --dry-run
@@ -110,7 +110,8 @@ stage_bundle() {
   # CLI helper script
   mkdir -p "$staging/scripts"
   cp "$repo_root/scripts/check_dependency.sh" "$staging/scripts/check_dependency.sh"
-  chmod +x "$staging/scripts/check_dependency.sh"
+  cp "$repo_root/scripts/discover_scan_targets.sh" "$staging/scripts/discover_scan_targets.sh"
+  chmod +x "$staging/scripts/check_dependency.sh" "$staging/scripts/discover_scan_targets.sh"
 
   # CI example
   mkdir -p "$staging/examples/github"

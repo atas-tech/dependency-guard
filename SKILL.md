@@ -1,33 +1,35 @@
 ---
 name: "dependency-guard"
-version: "1.0.1"
-description: "Use when a task adds, upgrades, removes, or reviews software dependencies and the agent should apply a Socket-based supply-chain guardrail before changing manifests or lockfiles. Prefer MCP `depscore` when available, otherwise use the bundled Socket CLI helper. Stop and recommend an alternative or human review when risk signals are weak."
+version: "1.2.0"
+description: "Use when a task adds, upgrades, removes, or reviews software dependencies across Socket-supported ecosystems and the agent should apply a supply-chain guardrail before changing manifests or lockfiles. Prefer MCP `depscore` when available, otherwise use the bundled Socket CLI helper. Stop and recommend an alternative or human review when risk signals are weak."
 metadata: {"openclaw":{"emoji":"🛡️","requires":{"bins":["socket"]}}}
 ---
 
 # Dependency Guard
 
-Use this skill when dependency changes are in scope for `npm`, `pnpm`, `yarn`, Python packages, or other package ecosystems supported by Socket.
+Use this skill when dependency changes are in scope for npm, Python, Go, Maven/Gradle, RubyGems, NuGet, Rust/Cargo, Composer, or another package ecosystem supported by Socket. Read [references/ecosystems.md](references/ecosystems.md) when the package manager or scan type is not obvious.
 
 ## Prerequisites
 
-- The `socket` CLI must be installed and on `PATH` (`npm install -g socket`).
+- If the host exposes MCP `depscore`, no local Socket CLI is required.
+- For CLI fallback reviews, `socket` must be installed and on `PATH` (`npm install -g socket`).
 - Authentication is required for CLI-based reviews. See the Authentication section below.
 
 ## Workflow
 
-1. Confirm the exact dependency change being proposed.
-2. Check whether the feature can be implemented with the standard library or an existing project dependency.
-3. Prefer MCP `depscore` if the host agent exposes it.
-4. Otherwise run `scripts/check_dependency.sh <ecosystem> <package> [version]`.
-5. Apply the policy in `references/policy.md`.
-6. Apply the decision rules in `references/decision-matrix.md`.
-7. Before making the change, report:
+1. Confirm the exact dependency change being proposed, its package ecosystem, and the relevant manifest and lockfile.
+2. Inspect how the dependency is used, including imports, build hooks, install-time behavior, and the project license constraints.
+3. Check whether the feature can be implemented with the standard library or an existing project dependency.
+4. Prefer MCP `depscore` if the host agent exposes it. Batch all requested packages when practical, and treat a package missing from the response as unreviewed.
+5. Otherwise run `scripts/check_dependency.sh <ecosystem> <package> [version]`. Its `deep` mode maps to Socket's transitive `package score` command. For repository-wide scans, first run `scripts/discover_scan_targets.sh <path>`, carry forward any CVE-only or experimental warnings, then use `socket scan create` or `socket ci`.
+6. Apply the policy in `references/policy.md`.
+7. Apply the decision rules in `references/decision-matrix.md`.
+8. Before making the change, report:
    - why the package is needed
    - whether an existing alternative exists
    - what Socket reported
    - whether install scripts, risky capabilities, or transitive risk are present
-8. If the decision is `allow_with_warning`, present the warning clearly before making the change. If the decision is `block_pending_human_review` or `block`, stop and propose either:
+9. If the decision is `allow_with_warning`, present the warning clearly before making the change. If the decision is `block_pending_human_review` or `block`, stop and propose either:
    - a safer dependency
    - a no-dependency implementation
    - explicit human review
@@ -54,6 +56,7 @@ Use the short response template in `references/examples.md` when presenting the 
 
 - Read `references/policy.md` for the canonical guardrail.
 - Read `references/decision-matrix.md` for allow/block criteria.
+- Read `references/ecosystems.md` for direct package aliases, repository scan coverage, and lockfile expectations.
 - Read `references/examples.md` for user-facing review examples.
 
 ## Notes
@@ -64,3 +67,4 @@ Use the short response template in `references/examples.md` when presenting the 
 - Do not assume system-wide wrapper enforcement or shell-completion setup is desirable; keep CLI setup minimal.
 - If Socket tooling is unavailable, require human review before adding the dependency.
 - Review manifest and lockfile changes together.
+- A shallow package result is not evidence about transitive risk; use a deep/score result or a repository scan before classifying an added dependency as safe.

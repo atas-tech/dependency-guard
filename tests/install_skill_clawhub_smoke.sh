@@ -16,6 +16,7 @@ bundle_dir="$tmp_dir/skills/dependency-guard"
 [[ -f "$bundle_dir/CLAUDE.md" ]]
 [[ -f "$bundle_dir/references/policy.md" ]]
 [[ -f "$bundle_dir/scripts/check_dependency.sh" ]]
+[[ -f "$bundle_dir/scripts/discover_scan_targets.sh" ]]
 [[ ! -e "$tmp_dir/.agent-skills/dependency-guard" ]]
 [[ ! -f "$tmp_dir/AGENTS.md" ]]
 [[ ! -f "$tmp_dir/CLAUDE.md" ]]

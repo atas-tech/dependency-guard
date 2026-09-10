@@ -109,6 +109,7 @@ plan_bundle() {
     planned_files+=("$dest/references/$(basename "$f")")
   done
   planned_files+=("$dest/scripts/check_dependency.sh")
+  planned_files+=("$dest/scripts/discover_scan_targets.sh")
   planned_files+=("$dest/examples/github/dependency-guard.yml")
 }
 
@@ -158,8 +159,9 @@ copy_bundle() {
   cp "$repo_root/agents/openai.yaml" "$dest/agents/openai.yaml"
   cp "$repo_root/references/"*.md "$dest/references/"
   cp "$repo_root/scripts/check_dependency.sh" "$dest/scripts/check_dependency.sh"
+  cp "$repo_root/scripts/discover_scan_targets.sh" "$dest/scripts/discover_scan_targets.sh"
   cp "$repo_root/examples/github/dependency-guard.yml" "$dest/examples/github/dependency-guard.yml"
-  chmod +x "$dest/scripts/check_dependency.sh"
+  chmod +x "$dest/scripts/check_dependency.sh" "$dest/scripts/discover_scan_targets.sh"
 }
 
 upsert_block() {

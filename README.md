@@ -11,6 +11,8 @@ This repository now packages the same policy in multiple forms:
 - `CLAUDE.md`: Claude Code project memory
 - `references/`: canonical policy, decision matrix, and reporting examples
 - `scripts/check_dependency.sh`: helper that generates a Socket CLI review artifact
+- `references/ecosystems.md`: direct package aliases and repository scan coverage, including Rust/Cargo
+- `scripts/discover_scan_targets.sh`: inventories repository manifests and reports partial-coverage warnings before a Socket scan
 - `scripts/test.sh`: simple smoke-test runner for the repository helpers
 - `examples/github/dependency-guard.yml`: copyable GitHub Actions example using `socket ci`
 
@@ -74,7 +76,7 @@ flowchart TD
     K -->|block| O["Do not proceed; recommend alternative or no-dependency approach"]
 ```
 
-Use the skill when a task adds, upgrades, replaces, or risk-reviews a dependency, including transient package execution such as `npx` or `pnpm dlx`.
+Use the skill when a task adds, upgrades, replaces, or risk-reviews a dependency in a Socket-supported ecosystem, including Rust/Cargo and transient package execution such as `npx` or `pnpm dlx`.
 
 Before changing manifests or lockfiles, the agent must report:
 
@@ -104,7 +106,7 @@ Before changing manifests or lockfiles, the agent must report:
 - Native install/update flows can use `openclaw skills install <skill-slug>` and `openclaw skills update --all`.
 - Registry-authenticated workflows such as publish and sync use the separate `clawhub` CLI.
 - All ClawHub-published skills are public, so do not publish local secrets, private prompts, or environment-specific credentials in the skill bundle.
-- The publish helper (`scripts/publish_clawhub.sh`) builds a **clean staging bundle** containing only OpenClaw-relevant files (SKILL.md, references/, check_dependency.sh, examples/, LICENSE). Agent-specific adapters (CLAUDE.md, AGENTS.md, agents/) and dev tooling are excluded from the published bundle.
+- The publish helper (`scripts/publish_clawhub.sh`) builds a **clean staging bundle** containing only OpenClaw-relevant files (SKILL.md, references/, scripts/, examples/, LICENSE). Agent-specific adapters (CLAUDE.md, AGENTS.md, agents/) and dev tooling are excluded from the published bundle.
 
 ### Install Models
 
@@ -168,7 +170,7 @@ CLI review examples:
 
 ```sh
 socket package shallow npm zod
-socket package deep npm zod --markdown
+socket package score npm zod --markdown
 ```
 
 ## Manual Review Helper
@@ -177,9 +179,19 @@ Generate a review artifact before changing dependencies:
 
 ```sh
 ./scripts/check_dependency.sh npm zod
+./scripts/check_dependency.sh rust serde 1.0.219
 ```
 
-The helper writes a markdown report under `tmp/socket-reports/` by default. Apply `references/decision-matrix.md` to that report before changing manifests or lockfiles.
+The helper writes a markdown report under `tmp/socket-reports/` by default. It supports direct package reviews for npm, PyPI, Go Modules, Maven/Gradle, RubyGems, NuGet, Rust/Cargo, and Composer; see `references/ecosystems.md` for aliases and limitations. Apply `references/decision-matrix.md` to that report before changing manifests or lockfiles.
+
+For a repository-wide scan, discover coverage first:
+
+```sh
+./scripts/discover_scan_targets.sh .
+socket scan create .
+```
+
+The discovery output identifies Swift, Conan, Julia, Dart, and Hex manifests, but marks their CVE-only or experimental coverage. Those ecosystems are not treated as full direct package-score reviews.
 
 Run the bundled smoke tests:
 
@@ -227,6 +239,8 @@ The example workflow:
 - installs the Socket CLI
 - runs `socket ci`
 - fails when the scan violates policy
+
+`socket ci` scans supported repository manifests and lockfiles, including `Cargo.toml`/`Cargo.lock`. For a local repository-wide scan, use `socket scan create <path>` rather than the one-package helper.
 
 Required secret:
 

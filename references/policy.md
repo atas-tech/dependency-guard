@@ -16,19 +16,29 @@ Apply this policy whenever an agent proposes or performs any of the following:
 - replace one package with another
 - justify retaining a risky dependency during review
 
+The policy applies across supported package ecosystems; package-manager names
+such as Cargo, Bundler, or pnpm may map to different Socket PURL types. Use
+`references/ecosystems.md` rather than guessing an ecosystem identifier.
+
 ## Required Behavior
 
 1. Do not add or upgrade a dependency without a Socket review first.
 2. Prefer existing project capabilities or standard-library implementations over new packages.
 3. Review manifest and lockfile changes together.
-4. Treat install scripts, obfuscation, privileged capabilities, typosquatting indicators, and unusual maintainer patterns as escalation triggers.
-5. If the dependency cannot be reviewed because tooling is unavailable, require human review before proceeding.
+4. For a repository-wide review, run `scripts/discover_scan_targets.sh <path>` first, then scan every relevant manifest and lockfile with `socket scan create` or `socket ci`; do not infer project coverage from a single package score.
+5. Carry forward any CVE-only, experimental, or otherwise partial-coverage warning from discovery; missing full health scores require human review rather than an `allow` classification.
+6. Treat install/build scripts, obfuscation, privileged capabilities, typosquatting indicators, and unusual maintainer patterns as escalation triggers.
+7. If the dependency cannot be reviewed because tooling is unavailable, require human review before proceeding.
 
 ## Preferred Tooling Order
 
 1. MCP `depscore`
 2. Socket CLI package inspection
 3. Human review when neither is available
+
+For a direct package review, use the CLI's `socket package score` command for
+transitive risk or `socket package shallow` only when a package-only view is
+specifically requested. For project scans, use `socket scan create`/`socket ci`.
 
 ## Required Pre-Change Summary
 

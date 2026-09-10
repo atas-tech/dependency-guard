@@ -10,5 +10,7 @@ output="$("$repo_root/scripts/check_dependency.sh" --help)"
 [[ "$output" == *"Usage:"* ]]
 [[ "$output" == *"check_dependency.sh <ecosystem> <package> [version]"* ]]
 [[ "$output" == *"Socket CLI markdown report artifact"* ]]
+[[ "$output" == *"cargo|rust"* ]]
+[[ "$output" == *"socket package score"* ]]
 
 echo "check_dependency help smoke test passed"

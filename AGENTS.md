@@ -13,5 +13,7 @@ When a task adds, upgrades, removes, or evaluates a dependency:
 
 CLI fallback auth can use either a user-supplied private Socket token or a limited public-login flow if the installed Socket CLI supports blank-submit login. Do not assume system-wide wrapper enforcement or shell-completion setup.
 
+Use `references/ecosystems.md` to map aliases such as `rust`/`cargo` and to distinguish one-package reviews from repository-wide scans. Run `scripts/discover_scan_targets.sh <path>` before repository-wide scans so CVE-only or experimental ecosystem warnings are preserved.
+
 Canonical policy: `references/policy.md`
 Native Codex skill: `SKILL.md`

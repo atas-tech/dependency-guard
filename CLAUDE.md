@@ -17,4 +17,6 @@ Required process:
 
 For CLI fallback auth, use either a user-supplied private Socket token or a limited public-login flow if the installed Socket CLI supports blank-submit login. Do not assume system-wide wrapper enforcement or shell completion.
 
+Use `references/ecosystems.md` for package-manager aliases (including Rust/Cargo) and run `scripts/discover_scan_targets.sh <path>` before a repository-wide `socket scan`/`socket ci` scan so partial-coverage warnings are preserved.
+
 For fuller packaging metadata, see `SKILL.md`.
